@@ -1,6 +1,6 @@
-# Vibe Coding Prompt Templates — Salesforce
+# Ksquare Group — Salesforce Prompt Templates
 
-Static web application to generate **AI prompt templates** for Salesforce development using prompt engineering best practices:
+**Ksquare Group's** static web application to generate **AI prompt templates** for Salesforce development using prompt engineering best practices:
 
 - **Role**
 - **Context**
