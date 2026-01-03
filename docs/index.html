@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vibe Coding Prompt Templates — Salesforce</title>
+    <meta
+      name="description"
+      content="Generate AI prompt templates for Salesforce development (LWC, Apex, Tests, Flows, Objects) using role/context/constraints/guardrails/outcomes."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="container header">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">VC</div>
+        <div class="brand__text">
+          <div class="brand__title">Vibe Coding Prompt Templates</div>
+          <div class="brand__subtitle">Salesforce (LWC • Apex • Tests • Flows • Objects)</div>
+        </div>
+      </div>
+      <div class="header__actions">
+        <button id="btnHelp" class="btn btn--ghost" type="button">How to Use</button>
+        <button id="btnReset" class="btn btn--ghost" type="button">Reset</button>
+        <button id="btnCopy" class="btn" type="button">Copy prompt</button>
+      </div>
+    </header>
+
+    <main class="container layout">
+      <section class="panel">
+        <h2 class="panel__title">Inputs</h2>
+        <p class="panel__hint">
+          Choose what you’re building and provide enough context so the model can produce correct, secure, and org-aligned
+          output.
+        </p>
+
+        <div class="grid">
+          <label class="field">
+            <span class="field__label">Persona (who is asking)</span>
+            <select id="persona" class="field__control">
+              <option value="Developer">Developer</option>
+              <option value="Architect">Architect</option>
+              <option value="Business Analyst">Business Analyst</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Artifact type (select one or more)</span>
+            <div class="checkbox-group" id="artifactGroup">
+              <label class="checkbox">
+                <input type="checkbox" value="LWC" id="artifact_LWC" checked />
+                <span>Lightning Web Component (LWC)</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" value="Apex" id="artifact_Apex" />
+                <span>Apex (classes / triggers / services)</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" value="TestClass" id="artifact_TestClass" />
+                <span>Apex Test Class</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" value="Flow" id="artifact_Flow" />
+                <span>Flow</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" value="Object" id="artifact_Object" />
+                <span>Object / Data Model</span>
+              </label>
+            </div>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Work product</span>
+            <select id="workProduct" class="field__control">
+              <option value="Build">Build implementation</option>
+              <option value="Story">Write a user story / acceptance criteria</option>
+              <option value="Design">Architecture / technical design</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Build mode</span>
+            <div class="radio-group">
+              <label class="radio">
+                <input type="radio" name="orgMode" value="Greenfield" id="orgMode_Greenfield" checked />
+                <span>Greenfield</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="orgMode" value="ExistingOrg" id="orgMode_ExistingOrg" />
+                <span>Existing Org (Brownfield)</span>
+              </label>
+            </div>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Goal</span>
+          <input
+            id="goal"
+            class="field__control"
+            type="text"
+            placeholder="What should be delivered? (e.g., 'Create a Case Intake screen and automate routing based on priority')"
+          />
+        </label>
+
+        <div class="grid">
+          <label class="field">
+            <span class="field__label">Primary object(s)</span>
+            <input
+              id="objects"
+              class="field__control"
+              type="text"
+              placeholder="e.g., Case, Account, CustomObject__c"
+            />
+          </label>
+          <label class="field">
+            <span class="field__label">Users / personas</span>
+            <input id="users" class="field__control" type="text" placeholder="e.g., Support Agent, Manager" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Requirements</span>
+          <textarea
+            id="requirements"
+            class="field__control field__control--textarea"
+            rows="5"
+            placeholder="- Functional requirements&#10;- Non-functional requirements (perf, security, UX)&#10;- Edge cases"
+          ></textarea>
+        </label>
+
+        <div id="existingOrgFields" class="card card--muted" hidden>
+          <div class="card__title">Existing Org (Brownfield) Details</div>
+          <p class="card__hint">
+            When Brownfield is selected, the prompt will force an inventory/analysis step before building.
+          </p>
+          
+          <label class="field">
+            <span class="field__label">Known components (Apex/Flows/LWCs)</span>
+            <textarea
+              id="existingComponents"
+              class="field__control field__control--textarea"
+              rows="4"
+              placeholder="List existing components: Apex classes, LWCs, Flows, Triggers, etc. (e.g., 'CaseService.cls, AccountDetailLWC, CaseRoutingFlow')"
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Known integrations</span>
+            <textarea
+              id="knownIntegrations"
+              class="field__control field__control--textarea"
+              rows="3"
+              placeholder="List any known integrations: REST APIs, SOAP services, Named Credentials, External systems, etc."
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Org complexity notes</span>
+            <textarea
+              id="orgComplexity"
+              class="field__control field__control--textarea"
+              rows="3"
+              placeholder="Any relevant complexity notes: data volume, customizations, managed packages, security model, naming conventions, etc."
+            ></textarea>
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Constraints</span>
+          <div class="constraints-container">
+            <div class="constraints-readonly">
+              <div class="constraints-readonly__title">Standard constraints (always applied)</div>
+              <div class="constraints-readonly__list" id="readonlyConstraints"></div>
+            </div>
+            <label class="field" style="margin-top: 12px;">
+              <span class="field__label">Additional constraints (optional)</span>
+              <textarea
+                id="constraints"
+                class="field__control field__control--textarea"
+                rows="4"
+                placeholder="- No hardcoding IDs&#10;- Follow security best practices&#10;- Use bulk-safe Apex&#10;- Governor limits"
+              ></textarea>
+            </label>
+          </div>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Output preference</span>
+          <select id="outputStyle" class="field__control">
+            <option value="Markdown">Markdown</option>
+            <option value="Jira">Jira-ready (headings + AC)</option>
+            <option value="Engineering">Engineering spec (structured)</option>
+          </select>
+        </label>
+
+        <div class="divider"></div>
+
+        <details class="advanced">
+          <summary class="advanced__summary">Advanced (optional)</summary>
+          <div class="advanced__body">
+            <label class="field">
+              <span class="field__label">Org details</span>
+              <textarea
+                id="orgDetails"
+                class="field__control field__control--textarea"
+                rows="4"
+                placeholder="Edition, namespaces, packaging, environments, CI/CD notes, data volume, compliance (PII), sharing model, etc."
+              ></textarea>
+            </label>
+            <label class="field">
+              <span class="field__label">Data / integration</span>
+              <textarea
+                id="integration"
+                class="field__control field__control--textarea"
+                rows="4"
+                placeholder="APIs, external systems, auth model, async patterns, events, callouts, Named Credentials, etc."
+              ></textarea>
+            </label>
+          </div>
+        </details>
+      </section>
+
+      <section class="panel">
+        <div class="panel__titleRow">
+          <h2 class="panel__title">Generated prompt</h2>
+          <div class="pill" id="promptMeta"></div>
+        </div>
+        <p class="panel__hint">This is the prompt you paste into your AI tool. It includes explicit guardrails and output format.</p>
+
+        <textarea id="output" class="output" spellcheck="false"></textarea>
+
+        <div class="actions">
+          <button id="btnDownload" class="btn btn--ghost" type="button">Download .md</button>
+          <button id="btnCopy2" class="btn" type="button">Copy prompt</button>
+        </div>
+
+        <div class="footnote">
+          Tip: if the model can’t proceed, it should ask clarifying questions instead of guessing—this is enforced in the guardrails.
+        </div>
+      </section>
+    </main>
+
+    <footer class="container footer">
+      <div>
+        Built as a static site for GitHub Pages. No data leaves your browser unless you paste it into an AI tool.
+      </div>
+      <div class="footer__right">
+        <a class="link" href="./" aria-label="Reload">Reload</a>
+      </div>
+    </footer>
+
+    <!-- How to Use Modal -->
+    <div id="helpModal" class="modal" hidden>
+      <div class="modal__overlay"></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2 class="modal__title">How to Use This Tool</h2>
+          <button id="btnCloseHelp" class="modal__close" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="modal__body">
+          <h3>Overview</h3>
+          <p>
+            This tool generates AI prompt templates for Salesforce development using prompt engineering best practices.
+            It structures prompts with Role, Context, Constraints, Guardrails, and Outcomes to help AI tools produce
+            better, more accurate results.
+          </p>
+
+          <h3>Step-by-Step Guide</h3>
+          <ol>
+            <li>
+              <strong>Persona:</strong> Select who is asking (Developer, Architect, or Business Analyst). This sets
+              the expertise level and perspective.
+            </li>
+            <li>
+              <strong>Artifact Type:</strong> Select one or more types of Salesforce components you're building (LWC,
+              Apex, Test Classes, Flows, or Objects).
+            </li>
+            <li>
+              <strong>Work Product:</strong> Choose what you want to generate - Build (implementation), Story (user
+              story/acceptance criteria), or Design (architecture/technical design).
+            </li>
+            <li>
+              <strong>Org Mode:</strong> Select Greenfield (build from scratch) or Existing Org (analyze existing
+              components first).
+            </li>
+            <li>
+              <strong>Goal:</strong> Describe what should be delivered. Be specific about the functionality you need.
+            </li>
+            <li>
+              <strong>Primary Objects:</strong> List the Salesforce objects involved (e.g., Case, Account,
+              CustomObject__c).
+            </li>
+            <li>
+              <strong>Users/Personas:</strong> Identify who will use this (e.g., Support Agent, Manager).
+            </li>
+            <li>
+              <strong>Requirements:</strong> List functional and non-functional requirements, edge cases, and any
+              special considerations.
+            </li>
+            <li>
+              <strong>Constraints:</strong> Standard constraints are automatically included. Add any additional
+              constraints specific to your project.
+            </li>
+            <li>
+              <strong>Advanced (optional):</strong> Add org details, integration information, or other context that
+              might be relevant.
+            </li>
+          </ol>
+
+          <h3>Understanding the Output</h3>
+          <p>
+            The generated prompt includes:
+          </p>
+          <ul>
+            <li><strong>Role:</strong> Defines the AI's persona and expertise level</li>
+            <li><strong>Context:</strong> Provides all the relevant information about your project</li>
+            <li><strong>Constraints:</strong> Lists limitations and requirements that must be followed</li>
+            <li><strong>Guardrails:</strong> Safety and best practice rules to prevent common mistakes</li>
+            <li><strong>Outcomes:</strong> Defines what "done" looks like for your work product</li>
+            <li><strong>Process:</strong> Steps the AI should follow (discovery for existing orgs, assumptions for
+              greenfield)</li>
+            <li><strong>Output Format:</strong> Specifies how the response should be structured</li>
+          </ul>
+
+          <h3>Standard Guardrails & Constraints</h3>
+          <p>
+            The following guardrails and constraints are automatically included in every generated prompt:
+          </p>
+          
+          <h4>Standard Constraints (Always Applied)</h4>
+          <ul>
+            <li>No hardcoded record IDs, profile IDs, or endpoint URLs. Use metadata, Custom Metadata/Settings, Named Credentials, and labels where appropriate.</li>
+            <li>Be governor-limit aware and bulk-safe (especially for Apex and record-triggered automation).</li>
+            <li>Follow Salesforce best practices and the org's established patterns and naming conventions.</li>
+            <li>Prefer secure-by-default design: least privilege, CRUD/FLS, sharing, input validation, and safe error messages.</li>
+          </ul>
+
+          <h4>Base Guardrails</h4>
+          <ul>
+            <li>Do NOT invent org-specific names/IDs. If missing, ask questions or state assumptions explicitly.</li>
+            <li>If requirements conflict, call out the conflict and propose options rather than guessing.</li>
+            <li>If any information is missing or ambiguous, first list clarifying questions and assumptions before writing any code.</li>
+            <li>If you cannot safely proceed, output clarifying questions instead of code.</li>
+            <li>Do not explain the prompt back to me or talk about being an AI. Go straight to the engineering spec.</li>
+            <li>Output must be copy/paste ready and organized using clear headings and checklists.</li>
+          </ul>
+
+          <h4>Salesforce-Specific Guardrails</h4>
+          <ul>
+            <li>Explain how the solution aligns with Salesforce best practices and what trade-offs were made.</li>
+          </ul>
+
+          <p>
+            <strong>Note:</strong> Additional artifact-specific guardrails are automatically added based on the artifact types you select (LWC, Apex, Flow, etc.).
+          </p>
+
+          <h3>Tips for Best Results</h3>
+          <ul>
+            <li>Be specific in your goal and requirements - vague inputs lead to vague outputs</li>
+            <li>For existing orgs, list known components to help the AI understand your environment</li>
+            <li>Include security, performance, and compliance requirements in constraints</li>
+            <li>Use the "Existing Org" mode when working with established Salesforce orgs to avoid duplicating
+              functionality</li>
+            <li>Review the generated prompt before using it - you can edit it directly if needed</li>
+          </ul>
+
+          <h3>Copying and Using the Prompt</h3>
+          <p>
+            Once generated, click "Copy prompt" to copy the entire prompt to your clipboard, then paste it into your AI
+            tool (ChatGPT, Claude, Cursor, etc.). The prompt is designed to guide the AI to ask clarifying questions
+            if information is missing rather than making assumptions.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
+
