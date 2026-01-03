@@ -3,6 +3,22 @@ const STORAGE_KEY = "vc_salesforce_prompt_template_v1";
 
 const $ = (id) => document.getElementById(id);
 
+// Persona-based restrictions
+const PERSONA_RESTRICTIONS = {
+  "Business Analyst": {
+    workProducts: ["Story"],
+    artifacts: ["Flow", "Object"],
+  },
+  "Architect": {
+    workProducts: ["Design"],
+    artifacts: ["LWC", "Apex", "Flow", "Object"],
+  },
+  "Developer": {
+    workProducts: ["Build", "Story", "Design"],
+    artifacts: ["LWC", "Apex", "TestClass", "Flow", "Object"],
+  },
+};
+
 // Standard constraints that are always applied
 const STANDARD_CONSTRAINTS = [
   "No hardcoded record IDs, profile IDs, or endpoint URLs. Use metadata, Custom Metadata/Settings, Named Credentials, and labels where appropriate.",
@@ -395,6 +411,58 @@ function updateExistingOrgVisibility() {
   }
 }
 
+function updatePersonaBasedFilters() {
+  const persona = $("persona").value;
+  const restrictions = PERSONA_RESTRICTIONS[persona] || PERSONA_RESTRICTIONS["Developer"];
+
+  // Update work product options
+  const workProductSelect = $("workProduct");
+  const currentValue = workProductSelect.value;
+  const options = workProductSelect.querySelectorAll("option");
+  
+  options.forEach((option) => {
+    const isAllowed = restrictions.workProducts.includes(option.value);
+    option.hidden = !isAllowed;
+    option.disabled = !isAllowed;
+  });
+
+  // If current selection is not allowed, select the first allowed option
+  if (!restrictions.workProducts.includes(currentValue)) {
+    workProductSelect.value = restrictions.workProducts[0];
+  }
+
+  // Update artifact checkboxes
+  const artifactCheckboxes = document.querySelectorAll('#artifactGroup input[type="checkbox"]');
+  let hasSelectedAllowed = false;
+
+  artifactCheckboxes.forEach((checkbox) => {
+    const isAllowed = restrictions.artifacts.includes(checkbox.value);
+    const label = checkbox.closest("label.checkbox");
+    
+    if (label) {
+      label.style.display = isAllowed ? "flex" : "none";
+    }
+    
+    // Uncheck if not allowed
+    if (!isAllowed && checkbox.checked) {
+      checkbox.checked = false;
+    }
+    
+    // Track if any allowed artifact is selected
+    if (isAllowed && checkbox.checked) {
+      hasSelectedAllowed = true;
+    }
+  });
+
+  // If no allowed artifacts are selected, select the first allowed one
+  if (!hasSelectedAllowed && restrictions.artifacts.length > 0) {
+    const firstAllowed = document.querySelector(`#artifactGroup input[type="checkbox"][value="${restrictions.artifacts[0]}"]`);
+    if (firstAllowed) {
+      firstAllowed.checked = true;
+    }
+  }
+}
+
 function renderReadonlyConstraints() {
   const container = $("readonlyConstraints");
   container.innerHTML = STANDARD_CONSTRAINTS.map(
@@ -404,6 +472,7 @@ function renderReadonlyConstraints() {
 
 function updatePrompt() {
   updateExistingOrgVisibility();
+  updatePersonaBasedFilters();
   const state = readStateFromUI();
   const prompt = buildPrompt(state);
   $("output").value = prompt;
@@ -476,6 +545,7 @@ function resetAll() {
     orgDetails: "",
     integration: "",
   });
+  updatePersonaBasedFilters();
   updatePrompt();
 }
 
@@ -499,6 +569,9 @@ function init() {
     saved = null;
   }
   if (saved) writeStateToUI(saved);
+  
+  // Apply persona-based filters before generating prompt
+  updatePersonaBasedFilters();
   updatePrompt();
 
   const inputs = [
@@ -523,6 +596,12 @@ function init() {
       el.addEventListener("change", updatePrompt);
     }
   }
+
+  // Persona change should trigger filter update immediately
+  $("persona").addEventListener("change", () => {
+    updatePersonaBasedFilters();
+    updatePrompt();
+  });
 
   // Handle artifact checkboxes
   document.querySelectorAll('#artifactGroup input[type="checkbox"]').forEach((cb) => {
